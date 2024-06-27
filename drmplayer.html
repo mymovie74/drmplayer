@@ -68,7 +68,7 @@
     async function checkCORS(url) {
       try {
         const response = await fetch(url, { mode: 'cors' });
-        return response.ok;
+        return !response.ok;
       } catch (error) {
         return true; // Assuming blocked if fetch fails
       }
