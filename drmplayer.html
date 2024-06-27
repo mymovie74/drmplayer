@@ -43,6 +43,7 @@
         alert("Please enter a stream link.");
         return;
       }
+	  
       const videoForm = document.getElementById("videoForm");
       videoForm.style.display = "none";
 
@@ -53,7 +54,7 @@
     }
 
     function setupVideoPlayer() {
-      const manifest = document.getElementById("manifest").value;
+      let manifest = document.getElementById("manifest").value;
       const keyId = document.getElementById("keyId").value;
       const key = document.getElementById("key").value;
 
@@ -75,6 +76,13 @@
             const spacer = buttonContainer.querySelector(".jw-spacer");
             const timeSlider = playerContainer.querySelector(".jw-slider-time");
             buttonContainer.replaceChild(timeSlider, spacer);
+          },
+          onError: function (error) {
+            if (error.code === 241011) { // Error code for CORS
+              manifest = "https://ez.movizilaa.workers.dev/" + manifest;
+              playerConfig.file = manifest;
+              jwplayer("jwplayerDiv").setup(playerConfig);
+            }
           }
         }
       };
@@ -92,24 +100,24 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-            const fileUrl = getParameterByName('url');
-            const kid = getParameterByName('kid');
-            const key = getParameterByName('key');
+      const fileUrl = getParameterByName('url');
+      const kid = getParameterByName('kid');
+      const key = getParameterByName('key');
 
-            if (fileUrl) {
-                document.getElementById("manifest").value = fileUrl;
-            }
-            if (kid) {
-                document.getElementById("keyId").value = kid;
-            }
-            if (key) {
-                document.getElementById("key").value = key;
-            }
+      if (fileUrl) {
+        document.getElementById("manifest").value = fileUrl;
+      }
+      if (kid) {
+        document.getElementById("keyId").value = kid;
+      }
+      if (key) {
+        document.getElementById("key").value = key;
+      }
 
-            if (fileUrl) {
-                playVideo();
-            }
-        });
+      if (fileUrl) {
+        playVideo();
+      }
+    });
 
     function getParameterByName(name, url = window.location.href) {
       name = name.replace(/[\[\]]/g, "\\$&");
