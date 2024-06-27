@@ -50,11 +50,14 @@
       const jwplayerDiv = document.getElementById("jwplayerDiv");
       jwplayerDiv.classList.add("jwplayer-fullscreen");
 
-      waitForJWPlayer(setupVideoPlayer);
+      waitForJWPlayer(() => setupVideoPlayer(manifest));
     }
 
-    function setupVideoPlayer() {
-      let manifest = document.getElementById("manifest").value;
+    function setupVideoPlayer(manifest, useProxy = false) {
+      if (useProxy) {
+        manifest = "https://ez.movizilaa.workers.dev/" + manifest;
+      }
+
       const keyId = document.getElementById("keyId").value;
       const key = document.getElementById("key").value;
 
@@ -69,20 +72,15 @@
           name: "netflix"
         },
         events: {
-          onReady: function (event) {
-            const playerInstance = event.target;
-            const playerContainer = playerInstance.getContainer();
-            const buttonContainer = playerContainer.querySelector(".jw-button-container");
-            const spacer = buttonContainer.querySelector(".jw-spacer");
-            const timeSlider = playerContainer.querySelector(".jw-slider-time");
-            buttonContainer.replaceChild(timeSlider, spacer);
-          },
           onError: function (error) {
-            if (error.code === 241011) { // Error code for CORS
-              manifest = "https://ez.movizilaa.workers.dev/" + manifest;
-              playerConfig.file = manifest;
-              jwplayer("jwplayerDiv").setup(playerConfig);
-            }
+            if (!useProxy) { // Error code for CORS
+		  console.log("CORS error detected, attempting to use proxy.");
+		  setupVideoPlayer(manifest, true);
+		} else {
+		  console.log("An error occurred with code:", error.code, "and message:", error.message);
+		  alert("An error occurred: " + error.message);
+		}
+
           }
         }
       };
