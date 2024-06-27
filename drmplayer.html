@@ -32,40 +32,52 @@
       if (typeof jwplayer === 'function') {
         callback();
       } else {
-        console.log("Waiting for JWPlayer to load...");
         setTimeout(() => waitForJWPlayer(callback), 100);
       }
     }
 
     function playVideo() {
-      const manifest = document.getElementById("manifest").value;
-      console.log("Play video called with manifest:", manifest);
+      const manifestInput = document.getElementById("manifest");
+      const manifest = manifestInput.value.trim();
 
       if (!manifest) {
         alert("Please enter a stream link.");
         return;
       }
 
-      const videoForm = document.getElementById("videoForm");
-      videoForm.style.display = "none";
+      const proxyURL = "https://ez.movizilaa.workers.dev/";
 
-      const jwplayerDiv = document.getElementById("jwplayerDiv");
-      jwplayerDiv.classList.add("jwplayer-fullscreen");
+      // Check if the manifest URL is blocked by CORS
+      checkCORS(manifest).then((corsBlocked) => {
+        if (corsBlocked) {
+          // Append proxy URL to the manifest
+          const proxiedManifest = proxyURL + manifest;
+          manifestInput.value = proxiedManifest;
+        }
 
-      waitForJWPlayer(() => setupVideoPlayer(manifest));
+        const videoForm = document.getElementById("videoForm");
+        videoForm.style.display = "none";
+
+        const jwplayerDiv = document.getElementById("jwplayerDiv");
+        jwplayerDiv.classList.add("jwplayer-fullscreen");
+
+        waitForJWPlayer(setupVideoPlayer);
+      });
     }
 
-    function setupVideoPlayer(manifest, useProxy = false) {
-      console.log("Setting up video player with manifest:", manifest, "Use proxy:", useProxy);
-
-      if (useProxy) {
-        manifest = "https://ez.movizilaa.workers.dev/" + manifest;
-        console.log("Using proxy. Updated manifest URL:", manifest);
+    async function checkCORS(url) {
+      try {
+        const response = await fetch(url, { mode: 'cors' });
+        return response.ok;
+      } catch (error) {
+        return true; // Assuming blocked if fetch fails
       }
+    }
 
+    function setupVideoPlayer() {
+      const manifest = document.getElementById("manifest").value;
       const keyId = document.getElementById("keyId").value;
       const key = document.getElementById("key").value;
-      console.log("Key ID:", keyId, "Key:", key);
 
       const playerConfig = {
         file: manifest,
@@ -77,19 +89,6 @@
         skin: {
           name: "netflix"
         },
-        events: {
-          onError: function (error) {
-            console.log("Player error occurred:", error);
-
-            if (!useProxy) { // Error code for CORS
-              console.log("CORS error detected, attempting to use proxy.");
-              setupVideoPlayer(manifest, true);
-            } else {
-              console.log("An error occurred with code:", error.code, "and message:", error.message);
-              alert("An error occurred: " + error.message);
-            }
-          }
-        }
       };
 
       if (keyId && key) {
@@ -99,19 +98,15 @@
             key: key,
           },
         };
-        console.log("DRM configuration added to player config.");
       }
 
       jwplayer("jwplayerDiv").setup(playerConfig);
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      console.log("DOM fully loaded and parsed.");
       const fileUrl = getParameterByName('url');
       const kid = getParameterByName('kid');
       const key = getParameterByName('key');
-
-      console.log("URL parameters - fileUrl:", fileUrl, "kid:", kid, "key:", key);
 
       if (fileUrl) {
         document.getElementById("manifest").value = fileUrl;
