@@ -89,6 +89,16 @@
         skin: {
           name: "netflix"
         },
+        events: {
+          onReady: function (event) {
+            const playerInstance = event.target;
+            const playerContainer = playerInstance.getContainer();
+            const buttonContainer = playerContainer.querySelector(".jw-button-container");
+            const spacer = buttonContainer.querySelector(".jw-spacer");
+            const timeSlider = playerContainer.querySelector(".jw-slider-time");
+            buttonContainer.replaceChild(timeSlider, spacer);
+          }
+        }
       };
 
       if (keyId && key) {
