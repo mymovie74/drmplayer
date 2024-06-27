@@ -32,18 +32,20 @@
       if (typeof jwplayer === 'function') {
         callback();
       } else {
+        console.log("Waiting for JWPlayer to load...");
         setTimeout(() => waitForJWPlayer(callback), 100);
       }
     }
 
     function playVideo() {
       const manifest = document.getElementById("manifest").value;
+      console.log("Play video called with manifest:", manifest);
 
       if (!manifest) {
         alert("Please enter a stream link.");
         return;
       }
-	  
+
       const videoForm = document.getElementById("videoForm");
       videoForm.style.display = "none";
 
@@ -54,12 +56,16 @@
     }
 
     function setupVideoPlayer(manifest, useProxy = false) {
+      console.log("Setting up video player with manifest:", manifest, "Use proxy:", useProxy);
+
       if (useProxy) {
         manifest = "https://ez.movizilaa.workers.dev/" + manifest;
+        console.log("Using proxy. Updated manifest URL:", manifest);
       }
 
       const keyId = document.getElementById("keyId").value;
       const key = document.getElementById("key").value;
+      console.log("Key ID:", keyId, "Key:", key);
 
       const playerConfig = {
         file: manifest,
@@ -73,14 +79,15 @@
         },
         events: {
           onError: function (error) {
-            if (!useProxy) { // Error code for CORS
-		  console.log("CORS error detected, attempting to use proxy.");
-		  setupVideoPlayer(manifest, true);
-		} else {
-		  console.log("An error occurred with code:", error.code, "and message:", error.message);
-		  alert("An error occurred: " + error.message);
-		}
+            console.log("Player error occurred:", error);
 
+            if (!useProxy) { // Error code for CORS
+              console.log("CORS error detected, attempting to use proxy.");
+              setupVideoPlayer(manifest, true);
+            } else {
+              console.log("An error occurred with code:", error.code, "and message:", error.message);
+              alert("An error occurred: " + error.message);
+            }
           }
         }
       };
@@ -92,15 +99,19 @@
             key: key,
           },
         };
+        console.log("DRM configuration added to player config.");
       }
 
       jwplayer("jwplayerDiv").setup(playerConfig);
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+      console.log("DOM fully loaded and parsed.");
       const fileUrl = getParameterByName('url');
       const kid = getParameterByName('kid');
       const key = getParameterByName('key');
+
+      console.log("URL parameters - fileUrl:", fileUrl, "kid:", kid, "key:", key);
 
       if (fileUrl) {
         document.getElementById("manifest").value = fileUrl;
